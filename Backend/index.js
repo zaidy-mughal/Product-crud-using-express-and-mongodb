@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
 app.use(session({
   secret: 'your_secret_key',
   resave: false,
@@ -24,23 +25,30 @@ app.use(session({
   cookie: { secure: false } // Set secure to true if using https
 }));
 
+// used products endpoint before the IsAdmin middleware to communicate with frontend
+app.use("/products", productRoutes);
+
+app.use((req,res,next)=>{
+  if(req.query.isAdmin){
+    next();
+  }else{
+    res.send("Not Admin!");
+  }
+});
 
 // Routes
 app.get("/", (req, res) => {
   res.send("Server is Running Correctly!");
 });
 
-app.use("/products", productRoutes);
-
 
 app.get("/set-cookies", (req, res) => {
   res.cookie("username", "Tony");
-  res.cookie("isAuthenticated", true, { maxAge: 900000, httpOnly: true });
   res.send("Cookies are set!");
 });
 
 
-// create a session to count the number of times a user has visited the website
+// a session to count the number of times a user has visited the website
 app.get("/count", (req, res) => {
   if (req.session.views) {
     req.session.views++;
@@ -63,5 +71,3 @@ mongoose
   .catch((error) => {
     console.log(`Connection Failed due to this error: ${error}`);
   });
-
-
